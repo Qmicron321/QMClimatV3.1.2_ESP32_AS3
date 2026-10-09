@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <meta http-equiv = "Content-type" content = "text/html; charset=utf-8">
+    <title>QMClimat</title>
+    <link rel="icon" href="favicon.png" type="images/png">
+    <link rel = "stylesheet" type = "text/css" href = "style.css">
+    <script type = "text/javascript" src = "function.js"></script>
+    <script type = "text/javascript">	
+//-------Alarm-------//
+async function set_alarm(submit) {
+  const server = "/alarmsetup?ASound=" + encodeURIComponent(val_sw('ASound')) +
+                 "&asound=" + encodeURIComponent(val('asound')) +
+                 "&AHood=" + encodeURIComponent(val_sw('AHood')) +
+                 "&ahood=" + encodeURIComponent(val('ahood'));
+                //  "&SHood=" + encodeURIComponent(document.getElementById('SHood').value);
+  try {
+    await fetch(server, { method: 'GET' }); // или 'POST', если нужно
+     alert("Ok");  // окно с подтверждением
+  } catch (error) {
+    console.error('Ошибка при отправке запроса:', error);
+  }
+}
+
+//-------Arrow-------//
+async function set_arrow(submit) {
+  const server = "/arrowsetup?ARROW0=" + encodeURIComponent(val_sw('ARROW0')) +
+                 "&ARROW1=" + encodeURIComponent(val_sw('ARROW1')) +
+                 "&ARROW2=" + encodeURIComponent(val_sw('ARROW2')) +
+                 "&ARROW3=" + encodeURIComponent(val_sw('ARROW3')) +
+                 "&arrow0=" + encodeURIComponent(val('arrow0')) +
+                 "&arrow1=" + encodeURIComponent(val('arrow1')) +
+                 "&arrow2=" + encodeURIComponent(val('arrow2')) +
+                 "&arrow3=" + encodeURIComponent(val('arrow3'));
+  try {
+    await fetch(server, { method: 'GET' }); // или 'POST', если нужно
+   // alert("Ok");  //окно с подтверждением
+  } catch (error) {
+    console.error('Ошибка при отправке запроса:', error);
+  }
+}
+
+
+// Основная асинхронная функция для установки цвета и яркости
+async function set_color(submit) {
+  const server = "/setColor?" +
+                 "AddrLED=" + encodeURIComponent(val_sw('AddrLED')) +
+                 "&ColorLED=" + encodeURIComponent(val('ColorLED')) +
+                 "&Brightness=" + encodeURIComponent(document.getElementById('Brightness').value);
+  try {
+    await fetch(server, { method: 'GET' }); // или 'POST', если нужно
+   alert("Ok");  //окно с подтверждением
+  } catch (error) {
+    console.error('Ошибка при отправке запроса:', error);
+  }
+}
+
+
+//------weather------//
+  async function set_weather() {
+    const location = document.getElementById('location').value;
+   const apikey = document.getElementById('apiKey').value;
+
+    const server = "/setweather?" +
+                   "location=" + encodeURIComponent(location) +
+                   "&apikey=" + encodeURIComponent(apikey);
+  try {
+    await fetch(server, { method: 'POST' }); // или 'GET', если нужно
+    alert("Ok");
+  } catch (error) {
+    console.error('Ошибка при отправке запроса:', error);
+  }
+}
+
+//--------NTP--------//
+async function set_time_zone(submit) {
+  const server = "/TimeZone?timezone=" + encodeURIComponent(val('timezone'));
+  try {
+    await fetch(server, { method: 'GET' }); // или 'POST', если нужно
+   // alert("Ok");
+  } catch (error) {
+    console.error('Ошибка при отправке запроса:', error);
+  }
+}
+
+async function set_ntp(submit) {
+  const server = "/Ntpserver?ntpserver=" + encodeURIComponent(val('ntpserver'));
+  try {
+    await fetch(server, { method: 'GET' }); // или 'POST', если нужно
+    alert("Ok");
+  } catch (error) {
+    console.error('Ошибка при отправке запроса:', error);
+  }
+}
+    </script>
+  </head>
+
+  
+<!--MENU--> 
+	<!-- <body> -->
+      <body onload = "load();">
+       <input type="checkbox" id="nav-toggle" hidden>
+    <nav id="navmenu" class="nav">
+      <label id="mn" for="nav-toggle" class="nav-toggle" onclick></label>
+      <ul>
+        <li><a href="index.html">Датчики</a></li>
+        <li><a href="wifi_settings.html">Сеть</a></li>
+        <li><a href="setup.html"class="current"><span class="currnt">Настройки</span></a></li>
+        <li><a href="help.html">Сервис</a></li>
+      </ul>
+    </nav>
+	<!-- </body> -->
+
+  <!-- <body onload = "load();"> -->
+    <h2 class="hd1">Настройки</h2>
+
+    <center>           
+
+<!-------Alarm------->
+      <hr>
+      <h2 class="ttl">Тревога:</h2><br>
+      <table id="table_Alarm">
+        <tr>
+          <td> <label class="switch"><span class="opt_cn">Сирена</span> </td> <!--вывод названия блока-->
+            <td> <input type="checkbox" id="ASound"></td> 
+            <td> <span class="switch-btn"></span></td>
+          <td> 
+            <select class="inp1" id="asound" onchange="setMode(this.value)"  onchange="selectMode(this.value)">
+              <option value="0">Temp</option>
+              <option value="1">CO2</option>
+              <option value="2">PM2.5</option>
+              <option value="3">TVOC</option>
+              <option value="4">CO</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td> <label class="switch"><span class="opt_cn">Вытяжка</span> </td> <!--вывод названия блока-->
+          <td> <input type="checkbox" id="AHood"></td>
+          <td> <span class="switch-btn"></span></td>
+          <td> 
+            <select class="inp1" id="ahood" onchange="setMode(this.value)">
+              <option value="0">CO2</option>
+              <option value="1">PM2.5</option>
+              <option value="2">TVOC</option>
+              <option value="4">CO</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+      <table>
+        <!-- <tr>
+          <td><span class="opt_cn">Мощность</span></td>
+          <td><input id="SHood"type="range"  min="0" max="255" value="0"></td>
+			  </tr> -->
+      </table>    
+      <button class="btn" type="submit" onclick="set_alarm(this);">Сохранить</button>
+  
+
+<!-------Arrow------->
+      <hr>
+      <h2 class="ttl">Стрелочная индикация:</h2><br>
+      <table id="table_ArroW">
+        <tr>
+          <td><label class="switch"><span class="opt_cn">Индикатор 1</span></label></td>
+          <td><input type="checkbox" id="ARROW0"></td>
+          <td><span class="switch-btn"></span></td>
+          <td>
+            <select class="inp1" id="arrow0">
+              <option value="0">Temp</option>
+              <option value="1">Ham</option>
+              <option value="2">Press</option>
+              <option value="3">CO2</option>
+              <option value="4">PM2.5</option>
+              <option value="5">TVOC</option>
+              <option value="6">CO</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td><label class="switch"><span class="opt_cn">Индикатор 2</span></label></td>
+          <td><input type="checkbox" id="ARROW1"></td>
+          <td><span class="switch-btn"></span></td>
+          <td>
+            <select class="inp1" id="arrow1" onchange="setMode(this.value)">
+              <option value="0">Temp</option>
+              <option value="1">Ham</option>
+              <option value="2">Press</option>
+              <option value="3">CO2</option>
+              <option value="4">PM2.5</option>
+              <option value="5">TVOC</option>
+              <option value="6">CO</option>
+           </select>
+          </td>
+        </tr>
+        <tr>
+          <td><label class="switch"><span class="opt_cn">Индикатор 3</span></label></td>
+          <td><input type="checkbox" id="ARROW2"></td>
+          <td><span class="switch-btn"></span></td>
+          <td>
+            <select class="inp1" id="arrow2" onchange="setMode(this.value)">
+              <option value="0">Temp</option>
+              <option value="1">Ham</option>
+              <option value="2">Press</option>
+              <option value="3">CO2</option>
+              <option value="4">PM2.5</option>
+              <option value="5">TVOC</option>
+              <option value="6">CO</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td><label class="switch"><span class="opt_cn">Индикатор 4</span></label></td>
+          <td><input type="checkbox" id="ARROW3"></td>
+          <td><span class="switch-btn"></span></td>
+          <td>
+            <select class="inp1" id="arrow3" onchange="setMode(this.value)">
+              <option value="0">Temp</option>
+              <option value="1">Ham</option>
+              <option value="2">Press</option>
+              <option value="3">CO2</option>
+              <option value="4">PM2.5</option>
+              <option value="5">TVOC</option>
+              <option value="6">CO</option>
+            </select>
+          </td>
+        </tr>
+      </table> 
+       <br>
+<!-------AdresLED------->
+      <!-- <hr>
+      <h2 class="ttl">Подсветка:</h2><br> -->
+      <table id="table_AdresLED">
+        <tr>
+          <td><label class="switch"><span class="opt_cn">Подсветка</span></label></td>
+          <td><input type="checkbox" id="AddrLED"></td>
+          <td><span class="switch-btn"></span></td>
+          <td>
+            <select class="inp1" id="ColorLED">
+              <option value="0">Зеленый</option>
+              <option value="1">Желтый</option>
+              <option value="2">Синий</option>
+              <option value="3">Белый</option>
+            </select>
+          </td>
+        </tr>
+        <!-- <tr>
+          <td><label class="switch"><span class="opt_cn">Авто яркость</span></label></td>
+          <td><input type="checkbox" id="autoBrightness"></td>
+          <td><span class="switch-btn"></span></td>
+        </tr> -->
+      </table>
+      <table>
+        <tr>
+          <td><span class="opt_cn">Яркость</span></td>
+          <td><input id="Brightness"type="range"  min="0" max="255" value="0"></td>
+        </tr>
+      </table>
+      <button class="btn" type="submit" onclick="set_arrow(this); set_color(this);">Сохранить</button>
+
+<!-- <h1>Настройки цвета по цветовой политре</h1>
+<form action='/setColors' method='POST'>
+Датчик 1 Цвет: <input type='color' name='color1' value='
+convertRGBtoHex(parseColorToString(color1));'><br>
+Датчик 2 Цвет: <input type='color' name='color2' value='
+ convertRGBtoHex(parseColorToString(color2));'><br>
+<input type='submit' value='Обновить'>
+ </form> -->
+
+
+<!------weather------>
+      <hr>
+      <h2 class="ttl">Настройка сервера погоды:</h2><br>
+      <table>
+        <label for="openw">
+          <a href="http://openweathermap.org" target="_blank">openweathermap.org</a>
+        </label><br>
+        <tr>
+          <td><span class="opt_cn">Город</span></td>
+          <td><input type="text" id="location" value="{{location}}" maxlength="40" class="inp"></td>
+        </tr>
+        <tr>
+          <td><span class="opt_cn">API-ключ</span></td>
+          <td><input type="text" id="apiKey" value="{{apikey}}" maxlength="40" class="inp"></td>
+        </tr>
+      </table>
+      <button class="btn" type="submit" onclick="set_weather(this);">Сохранить</button>      
+
+
+<!--------NTP-------->
+      <hr>
+      <h2 class="ttl">Часовой пояс, NTP сервер:</h2><br>
+      <table>
+        <tr>
+          <td><span class="opt_cn">Часовой пояс</span></td>
+          <td>
+             <select id="timezone"class="inp1">
+              <option value="-12">(GMT) -12</option>
+              <option value="-11">(GMT) -11</option>
+              <option value="-10">(GMT) -10</option>
+              <option value="-9">(GMT) -09</option>
+              <option value="-8">(GMT) -08</option>
+              <option value="-7">(GMT) -07</option>
+              <option value="-6">(GMT) -06</option>
+              <option value="-5">(GMT) -05</option>
+              <option value="-4">(GMT) -04</option>
+              <option value="-3">(GMT) -03</option>
+              <option value="-2">(GMT) -02</option>
+              <option value="-1">(GMT) -01</option>
+              <option value="0">(GMT) +00</option>
+              <option value="1">(GMT) +01</option>
+              <option value="2">(GMT) +02</option>
+              <option value="3">(GMT) +03</option>
+              <option value="4">(GMT) +04</option>
+              <option value="5">(GMT) +05</option>
+              <option value="6">(GMT) +06</option>
+              <option value="7">(GMT) +07</option>
+              <option value="8">(GMT) +08</option>
+              <option value="9">(GMT) +09</option>
+              <option value="10">(GMT) +10</option>
+              <option value="11">(GMT) +11</option>
+              <option value="12">(GMT) +12</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+      <table>
+        <tr>
+          <td><span class="opt_cn">NTP-сервер</span></td>
+          <td><input type="text" class="inp" id="ntpserver" value="{{ntpserver}}" pattern="[0-9a-zA-Z. ]{1,20}" placeholder="time.nist.gov"></td>
+        </tr>
+      </table>
+      <button class="btn" type="submit" onclick="set_time_zone(this); set_ntp(this);">Сохранить</button>
+   
+    </center>
+    
+
+    <hr>
+    <span class="ta_l" style="padding-left: 0px; font-size: 11px; float: right;">Qmicron Corporation &copy; 2019</span>
+  </body>
+</html>

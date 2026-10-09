@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <meta http-equiv = "Content-type" content = "text/html; charset=utf-8">
+    <title>QMClimat</title>
+    <link rel="icon" href="favicon.png" type="images/png">
+    <link rel = "stylesheet" type = "text/css" href = "style.css">
+    <script src='https://code.jquery.com/jquery-3.6.0.min.js'></script> 
+    <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+  </head>
+
+<!--MENU--> 
+	<body>
+       <input type="checkbox" id="nav-toggle" hidden>
+    <nav id="navmenu" class="nav">
+      <label id="mn" for="nav-toggle" class="nav-toggle" onclick></label>
+      <ul>
+        <li><a href="index.html">Датчики</a></li>
+        <li><a href="wifi_settings.html">Сеть</a></li>
+        <li><a href="setup.html">Настройки</a></li>
+        <!-- <li><a href="graphic.html">Графики</a></li> -->
+        <li><a href="help.html">Сервис</a></li>
+        <!-- <li><a class="link__img" href="#"><span class="ico__text" onclick="restart(this,'ResetESP?');">Перезагрузка</span></a> -->
+      </ul>
+    </nav>
+	</body>
+
+
+  <body>
+    <center>
+        <!-------UPDATE------->
+      <hr>
+      <h2 class="ttl">Обновление:</h2><br>
+      <b><span class="opt_cn">Виберите и загрузите  (bin)</span></b><br>
+      <form method='POST' action='#' enctype='multipart/form-data' id='uploadota_form'>
+        <input type='file' name='update'>
+        <!-- <input class="btn" type='submit' value='Update'> -->
+      </form><br>
+      <b><span class="opt_cn">Виберите и загрузите  (html,css,js)</span></b><br>
+	    <form method='POST' action='#' enctype='multipart/form-data' id='uploadfs_form'>
+	      <input type='file' name='update'>
+	      <input class="btn" type='submit' value='Update'>
+	    </form>
+	    <div id='prg'>progress: 0%</div><br>
+    
+      <b><span class="opt_cn">Список загруженных файлов</span></b>
+      <div id="filelist"></div>
+      <hr>
+
+		</center>
+
+    <script>
+// OTA //
+      $('form').submit(function(e){
+        e.preventDefault();
+        var form = $('#uploadota_form')[0];
+        var data = new FormData(form);
+        $.ajax({
+          url: '/update',
+          type: 'POST',
+          data: data,
+          contentType: false,
+          processData:false,
+          xhr: function() {
+            var xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener('progress', function(evt) {
+              if (evt.lengthComputable) {
+                var per = evt.loaded / evt.total;
+                $('#prg').html('progress: ' + Math.round(per*100) + '%');
+              }
+            }, false);
+            return xhr;
+          },
+          success:function(d, s) {
+            console.log('success!');
+          },
+          error: function (a, b, c) {}
+        });
+      });
+// FS //
+      $('form').submit(function(e){
+        e.preventDefault();
+        var form = $('#uploadfs_form')[0];
+        var data = new FormData(form);
+        $.ajax({
+          url: '/edit',
+          type: 'POST',
+          data: data,
+          contentType: false,
+          processData:false,
+          xhr: function() {
+            var xhr = new window.XMLHttpRequest();
+            xhr.upload.addEventListener('progress', function(evt) {
+              if (evt.lengthComputable) {
+                var per = evt.loaded / evt.total;
+                $('#prg').html('progress: ' + Math.round(per*100) + '%');
+              }
+            }, false);
+            return xhr;
+          },
+          success:function(d,s){ 
+            console.log('success!'); 
+            getFileList(); 
+          },
+          error: function(){ alert('Upload failed'); }
+        });
+      });
+
+      function deleteFile(fileName) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if(this.readyState==4 && this.status==200){
+            getFileList();
+          }
+        };
+        if(confirm('Are you sure you want to delete the file ?')){
+          xhttp.open("DELETE", "/edit?file="+encodeURIComponent(fileName), true);
+          xhttp.send();
+        }
+      }
+
+      function getFileList() {
+        var xhttp=new XMLHttpRequest();
+        xhttp.onreadystatechange=function() {
+          if(this.readyState==4 && this.status==200){
+            var obj=JSON.parse(this.responseText);
+            if(obj.length){
+              var htmlSrc='<ul>';
+              for(var i=0;i<obj.length;i++){
+                if(obj[i].type=='file'){
+                  // Конвертация размера в килобайты с двумя знаками после запятой
+                  var sizeInKB = (obj[i].size / 1024).toFixed(2);    // Конвертация размера в килобайты с двумя знаками после запятой
+                  // Выводим имя файла и размер
+                  // htmlSrc+='<li>' + obj[i].name + ' (' + obj[i].size + ' bytes) <a href="#" onclick="deleteFile(\''+obj[i].name+'\')">X</a></li>';
+                  htmlSrc+='<li>' + obj[i].name + ' (' + sizeInKB + ' KB) <a href="#" onclick="deleteFile(\''+obj[i].name+'\')">X</a></li>';                  }
+              }
+              htmlSrc+='</ul>';
+              document.getElementById("filelist").innerHTML=htmlSrc;
+            } else {
+              document.getElementById("filelist").innerHTML='<p>No files found.</p>';
+            }
+          }
+        };
+        xhttp.open("GET","/list?dir=/",true);
+        xhttp.send();
+      }
+
+      $(document).ready(function(){ getFileList(); });
+    </script>
+
+    <span class="ta_l" style="padding-left: 0px; font-size: 11px; float: right;">Qmicron Corporation &copy; 2019</span>
+  </body>
+</html>

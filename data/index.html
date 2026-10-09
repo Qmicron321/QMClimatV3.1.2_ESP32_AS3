@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+		<meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <meta http-equiv = "Content-type" content = "text/html; charset=utf-8">
+		<title>QMClimat</title>
+    <link rel="icon" href="favicon.png" type="images/png">
+    <link rel = "stylesheet" type = "text/css" href = "style.css">
+    <script type = "text/javascript" src = "function.js"></script>
+    <script type = "text/javascript">
+
+    ////////// TIME ////////// 
+      var set_real_time;
+      function handleServerResponse(){
+        clearTimeout(set_real_time);
+        var res = jsonResponse.time.split(":");
+        real_time(hours=res[0],min=res[1],sec=res[2]);
+        document.body.style.backgroundColor="rgb("+jsonResponse.rgb+")";
+      }
+
+      function real_time(hours,min,sec){
+        sec=Number(sec)+1;
+        if (sec>=60){min=Number(min)+1;sec=0;}
+        if (min>=60){hours=Number(hours)+1;min=0;}
+        if (hours>=24){hours=0};
+        document.getElementById("time").innerHTML = hours+":"+(min<10?"0":"")+min+":"+(sec<10?"0":"")+sec;
+        set_real_time = setTimeout("real_time("+hours+","+min+","+sec+");", 1000);
+      }
+
+    ////////// SENSORS ////////// 
+      function updateSensorValue(selector, value) {
+        const element = document.querySelector(selector);
+        if (!element) return;                                             //если нет элемента, ничего не делаем
+        if (value !== undefined && value !== null && value !== '--') {
+          element.style.display = '';                                     // Есть допустимое значение, показываем весь блок
+          const valueSpan = element.querySelector('.sensor-labels span'); // обновляем текст внутри блока
+          if (valueSpan) {
+            valueSpan.textContent = value;
+          }
+        } else {
+          element.style.display = 'none';                                 // Нет данных, скрываем весь блок
+        }
+      }
+
+      function fetchData() {
+        fetch('/sensors')                               // укажите ваш актуальный URL
+        .then(response => response.json())
+        .then(data => {
+          updateSensorValue('.data.temp', data.temp);
+          updateSensorValue('.data.hum', data.hum);
+          updateSensorValue('.data.pres', data.pres);
+          updateSensorValue('.data.alt', data.alt);
+          updateSensorValue('.data.co2', data.co2);
+          updateSensorValue('.data.co', data.co);
+          updateSensorValue('.data.eco2', data.eco2);
+          updateSensorValue('.data.tvoc', data.tvoc);
+          updateSensorValue('.data.h2', data.h2);
+          updateSensorValue('.data.eth', data.eth);
+          updateSensorValue('.data.val1', data.val1);
+          updateSensorValue('.data.val2', data.val2);
+          updateSensorValue('.data.val3', data.val3);
+          //updateSensorValue('.data.sv', data.sv);
+          //updateSensorValue('.data.aq', data.aq);
+          //updateSensorValue('.data.aql', data.aql);
+
+          updateSensorValue('.data.Co', data.Co);
+          updateSensorValue('.data.CO2', data.CO2);
+        })
+        .catch(error => {
+          console.error('Ошибка получения данных:', error);
+        });
+      }
+
+      setInterval(fetchData, 5000);                   // Обновлять каждые 5 секунд
+      fetchData();                                    // Немедленно вызов при загрузке
+
+
+    ////////// Weather //////////
+      // // Вывод параметров погоды //
+      // async function loadWeather() {
+      //   try {
+      //     const response = await fetch('/weather');
+      //     if (!response.ok) {
+      //       throw new Error('Network response was not ok');
+      //     }
+      //     const data = await response.json();
+      //     document.getElementById('name').innerHTML = '<b>Погода в:</b>' + data.name;
+      //     document.getElementById('weatherData').innerHTML = `
+      //     <p><b>Описание:</b> ${data.description}</p>
+      //     <p><b>Температура:</b> ${data.temp.toFixed(2)} &deg;C</p>
+      //     <p><b>Ощущается как:</b> ${data.feels_like.toFixed(2)} &deg;C</p>
+      //     <p><b>Влажность:</b> ${data.humidity}%</p>
+      //     <p><b>Давление:</b> ${data.pressure_mmHg.toFixed(2)} mmHg</p>
+      //     <p><b>Облачность:</b> ${data.clouds_all}%</p>
+      //     <p><b>Скорость ветра:</b> ${data.wind_speed.toFixed(2)} m/s</p>
+      //     <p><b>Порывы ветра:</b> ${data.wind_gust.toFixed(2)} m/s</p>
+      //     <p><b>Направление ветра:</b> ${data.wind_direction}</p>`;
+      //   } 
+      //   catch (error) {
+      //     console.error('Error fetching weather:', error);
+      //   }
+      // }
+
+
+async function loadWeather() {
+  try {
+    const response = await fetch('/weather');
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    const data = await response.json();
+
+    const location = data.name;
+    const description = data.description;
+    const temp = data.temp.toFixed(2);
+    const feels_like = data.feels_like.toFixed(2);
+    const humidity = data.humidity;
+    const pressureMmHg = data.pressure_mmHg.toFixed(2);
+    const windSpeed = data.wind_speed.toFixed(2);
+    const windGust = data.wind_gust.toFixed(2);
+    const windDirection = data.wind_direction;
+
+    document.getElementById('weather-widget').innerHTML = `
+               <div style="border:1px solid #cbe5ff;border-radius:10px;padding:15px;max-width:350px;background:#fff;box-shadow:0 0 5px rgba(0,0,0,0.1);color:#767676;">
+        <h3 style="margin:0 0 15px 0;text-align:center;">Погода в ${location}</h3>
+        <div style="display:flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;">
+           
+            <div style="text-align:left;">
+              <p style="margin:0 0 5px;font-weight:bold;font-size:28px;line-height:1;">${temp}°C</p>
+              <p style="margin:0;font-size:16px;color:#555;">${description}</p>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:center;margin-left:25px;font-size:12px;line-height:1.4;color:#444;">
+            <p style="margin:4px 0;"><strong>Влажность:</strong> ${humidity}%</p>
+            <p style="margin:4px 0;"><strong>Давление:</strong> ${pressureMmHg} ммHg</p>
+            <p style="margin:4px 0;"><strong>Ветер:</strong> ${windSpeed} м/с, ${windDirection}</p>
+
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    console.error('Error fetching weather:', error);
+  }
+}
+  
+
+      // Обновление погоды по кнопке //
+      async function updateWeather() {
+        try {
+          await loadWeather();
+        } catch (error) {
+          alert('Ошибка при обновлении данных');
+        }
+      }
+
+      //  window.onload = set_weather(); // Обновляем данные погоды при загрузке страници
+      setInterval(loadWeather, 300000);                 // Обновлять каждые 30 минут
+      loadWeather();                                    // Обновляем данные погоды при загрузке страници
+
+    ////////// Получения данных тревоги //////////
+      function checkAlarmStatus() {
+      fetch('/status') // или другой URL, возвращающий статус
+        .then(response => response.json())
+        .then(data => {
+          if (data.alarmLogged) {
+            document.getElementById('alarmMessage').style.display = 'block';
+          } else {
+            document.getElementById('alarmMessage').style.display = 'none';
+          }
+        });
+      }
+
+    //  setInterval(checkAlarmStatus, 1000);  // Регулярно вызываем для обновления статуса
+   
+</script>
+  </head>
+
+
+<!------- MENU -------> 
+	<!-- <body> -->
+    <body  onload = "load();">
+       <input type="checkbox" id="nav-toggle" hidden>
+    <nav id="navmenu" class="nav">
+      <label id="mn" for="nav-toggle" class="nav-toggle" onclick></label>
+      <ul>
+        <li><a href="index.html"class="current"><span class="currnt">Датчики</span></a></li>
+        <li><a href="wifi_settings.html">Сеть</a></li>
+        <li><a href="setup.html">Настройки</a></li>
+        <li><a href="help.html">Сервис</a></li>
+      </ul>
+    </nav>
+	<!-- </body> -->
+
+
+  <!-- <body  onload = "load();"> -->
+	  <span id="time">{{time}} </span>
+
+<!------- AlarmMessage -------->
+    <center>
+      <div id="alarmMessage" style="display:none; color:red;  font-weight:bold;">
+         Опасный уровень, покиньте помещение
+      </div>
+    </center>
+
+<!------- SENSORS -------->
+    <h2 class="hd1">Сенсоры</h2>
+
+    <center>
+   
+  <!------- BME280 -------->
+ 			<div class='data temp'>
+        <hr>
+        <h2 class="ttl">BME280:</h2><br>
+
+				<div class='side-by-side text'><span class="opt_cn">Температура</span></div>
+        <div class='side-by-side text'>--</div>
+				<div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="temp">--</span> &deg;C</span>
+				</div>
+			</div>
+
+ 			<div class='data hum'>  
+				<div class='side-by-side text'><span class="opt_cn">Влажность</span></div>
+        <div class='side-by-side text'>--</div>
+				<div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="hum">--</span> &percnt;</span>
+			  </div>
+      </div>
+
+ 		  <div class='data pres'>
+				<div class='side-by-side text'><span class="opt_cn">Давление</span></div>
+        <div class='side-by-side text'>--</div>
+				<div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="pres">--</span> mm.Hg</span>
+				</div>
+      </div>
+
+       <!-- <div class='data alt'>
+				<div class='side-by-side text'><span class="opt_cn">Высота</span></div>
+        <div class='side-by-side text'>--</div>
+				<div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="alt">--</span> m</span>
+				</div>
+      </div> -->
+
+  <!------- MHZ-19B -------->
+ 		  <div class='data co2'>
+        <hr>
+        <h2 class="ttl">MHZ-19B:</h2><br>
+        <div class='side-by-side text'><span class="opt_cn">CO2</span></div> 
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="co2">--</span> ppm</span>
+				</div>
+			</div>
+
+        <!------- MQ-7 -------->
+ 		  <div class='data co'>
+        <hr>
+        <h2 class="ttl">MQ-7:</h2><br>
+        <div class='side-by-side text'><span class="opt_cn">CO</span></div> 
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="co">--</span> ppm</span>
+				</div>
+			</div>
+  <!------- MQ135 -------->
+ 		  <div class='data Co'>
+        <hr>
+        <h2 class="ttl">MQ135:</h2><br>
+
+				<!-- <div class='side-by-side text'><span class="opt_cn">Sensor Value</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="sv">--</span> mg/m3</span>
+        </div>
+      </div>
+
+      <div class='data aq'>
+        <div class='side-by-side text'><span class="opt_cn">Air Quality</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="aq">--</span> mg/m3</span>
+        </div>
+      </div>
+
+      <div class='data aql'>
+        <div class='side-by-side text'><span class="opt_cn">Calibrated</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="aql">--</span> mg/m3</span>
+				</div>
+			</div> -->
+      			<div class='side-by-side text'><span class="opt_cn">CO</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="Co">--</span> mg/m3</span>
+        </div>
+      </div>
+
+         <div class='data CO2'>
+        <div class='side-by-side text'><span class="opt_cn">CO2</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="CO2">--</span> mg/m3</span>
+        </div>
+      </div>
+
+
+  <!------- SGP30 -------->
+      <div class='data tvoc'>
+        <hr>
+        <h2 class="ttl">SGP30:</h2><br>
+
+				<div class='side-by-side text'><span class="opt_cn">TVOC</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id= "tvoc">--</span> ppd</span>
+        </div>
+      </div>
+
+      <div class='data eco2'>
+ 			  <div class='side-by-side text'><span class="opt_cn">CO2exp</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="eco2">--</span> ppm</span>
+        </div>
+      </div>
+			
+      <!-- <div class='data h2'>
+        <div class='side-by-side text'><span class="opt_cn">rawH2</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="h2">--</span> mg/m3</span>
+        </div>
+      </div>
+
+      <div class='data eth'>
+       <div class='side-by-side text'><span class="opt_cn">rawEthanol</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="eth">--</span> mg/m3</span>
+				</div>
+      </div> -->
+
+  <!------- PMS5003 -------->
+ 		  <div class='data val1'>
+        <hr>
+        <h2 class="ttl">PMS5003:</h2><br>
+
+				<div class='side-by-side text'><span class="opt_cn">PM1</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="val1">--</span> ug/m3</span>
+        </div>
+      </div><br>
+
+      <div class='data val2'>
+        <div class='side-by-side text'><span class="opt_cn">PM2.5</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="val2">--</span> ug/m3</span>
+        </div>
+      </div><br>
+
+      <div class='data val3'>
+        <div class='side-by-side text'><span class="opt_cn">PM10</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="sensor-labels"><span id="val3">--</span> ug/m3</span>
+				</div>
+			</div>
+
+
+  <!------- SBM20 -------->
+			<!-- <div class='data SBM20'>
+        <hr>
+        <h2 class="ttl">SBM20:</h2><br> 
+
+				<div class='side-by-side text'><span class="opt_cn">Радиационный фон</span></div>
+				<div class='side-by-side text'>--</div>
+        <div class='side-by-side reading'>
+				  <span class="reading"><span id="SBM20">--</span> mkR/h</span>
+				</div>
+			</div>  -->
+
+
+  <!------- Weather -------->
+      <hr>
+      <!-- <h2 class="ttl"><span id="name">Погода:</span></h2>
+       <div id="weatherData"></div><br>-->
+            <div id="weather-widget"></div><br>
+
+      <!-- <div id="forecast">Загрузка данных...</div> -->
+      <button class='btn' onclick="updateWeather()">Обновить погоду</button><hr>
+
+  <!------- Подвал -------->
+      <span class="ta_l" style="padding-left: 0px; font-size: 11px; float: right;">Qmicron Corporation &copy; 2019</span>
+    </center>
+
+
+  </body>
+</html>
+
+

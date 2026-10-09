@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <meta http-equiv = "Content-type" content = "text/html; charset=utf-8">
+    <title>QMClimat</title>
+    <link rel="icon" href="favicon.png" type="images/png">
+    <link rel = "stylesheet" type = "text/css" href = "style.css">
+    <script type = "text/javascript" src = "function.js"></script>
+    <script type = "text/javascript">
+
+      
+//------- restart -------//  
+      function restart(submit, texts) {
+        if (confirm(texts)) {
+          server = "/restart?device=ok";
+          send_request(submit, server);
+          return true;
+        } else {
+          return false;
+        }
+      }
+
+//------- INFO -------//
+      async function fetchInfo() {
+        const response = await fetch('/info');
+        const data = await response.json();
+        document.getElementById('Version').innerHTML = '<b>Version:</b> ' + data.Version;
+        document.getElementById('chipModel').innerHTML = '<b>ChipModel:</b> ' + data.chipModel;
+        document.getElementById('chipId').innerHTML = '<b>Chip ID:</b> ' + data.chipId;
+        document.getElementById('chipCores').innerHTML = '<b>Chip Cores:</b> ' + data.chipCores + ' core';
+        document.getElementById('sketchSize').innerHTML = '<b>Sketch Size:</b> ' + (data.sketchSize/1024).toFixed(1) + ' Kb';
+        document.getElementById('freeSketchSpace').innerHTML = '<b>FreeSketchSpace:</b> ' + (data.freeSketchSpace / 1024).toFixed(1) + ' Kb';
+        document.getElementById('cpuFreqMHz').innerHTML = '<b>CpuFreq:</b> ' + data.cpuFreqMHz + ' MHz';
+        document.getElementById('flashSize').innerHTML = '<b>FlashSize:</b> ' + (data.flashSize/1024).toFixed(1) + ' Kb';
+        document.getElementById('freeHeap').innerHTML = '<b>FreeHeap:</b> ' + (data.freeHeap/1024).toFixed(1) + ' Kb';
+        document.getElementById('coreTemperature').innerHTML = '<b>Core Temperature:</b> ' + data.coreTemperature.toFixed(1) + ' °C';
+      }
+      setInterval(fetchInfo, 10000); // обновлять каждые 10 секунд
+       fetchInfo(); 
+
+//------- Sensors -------//
+async function set_sensors(submit) {
+  const server = "/sensorsetup?" +
+    "BME280=" + encodeURIComponent(val_sw('BME280')) +
+    "&SGP30=" + encodeURIComponent(val_sw('SGP30')) +
+    "&PMS5003=" + encodeURIComponent(val_sw('PMS5003')) +
+    "&Z19B=" + encodeURIComponent(val_sw('Z19B'))+
+    "&MQ7i=" + encodeURIComponent(val_sw('MQ7i'))+
+    "&MQ135i=" + encodeURIComponent(val_sw('MQ135i'));
+  try {
+    await fetch(server, { method: 'GET' }); // или 'POST', если нужно
+   // alert("Ok");
+    restart(this, 'OK! ResetESP');
+  } catch (error) {
+    console.error('Ошибка при отправке запроса:', error);
+  }
+}
+// // Функция скрытия строк тревог в зависимости от выбранных датчиков
+// function toggleAlarmRows() {
+//   const bme280 = document.getElementById('BME280');
+//   const sgp30 = document.getElementById('SGP30');
+//   const pms5003 = document.getElementById('PMS5003');
+//   const mq7 = document.getElementById('MQ7i');
+//   const z19b = document.getElementById('Z19B');
+  
+//   const tempRow = document.getElementById('temp_alarm_row');
+//   const tvocRow = document.getElementById('tvoc_alarm_row');
+//   const pm25Row = document.getElementById('pm25_alarm_row');
+//   const coRow = document.getElementById('co_alarm_row');
+//   const co2Row = document.getElementById('co2_alarm_row');
+ 
+//   if (tempRow) tempRow.style.display = bme280 && bme280.checked ? '' : 'none';
+//   if (tvocRow) tvocRow.style.display = sgp30 && sgp30.checked ? '' : 'none';
+//   if (pm25Row) pm25Row.style.display = pms5003 && pms5003.checked ? '' : 'none';
+//   if (coRow) coRow.style.display = mq7 && mq7.checked ? '' : 'none';
+//   if (co2Row) co2Row.style.display = z19b && z19b.checked ? '' : 'none';
+// }
+
+// window.addEventListener('load', function() {
+//   const sensors = ['BME280', 'SGP30', 'PMS5003', 'MQ7i', 'Z19B'];
+//   sensors.forEach(id => {
+//     const el = document.getElementById(id);
+//     if (el) el.addEventListener('change', toggleAlarmRows);
+//   });
+//   toggleAlarmRows();
+//   if (typeof load === 'function') load();
+// });
+
+//-------AlarmLevl-------//
+async function set_alarmlevl(submit) {
+  const server = "/alarmlevl?" +
+                 "lowlevltemp=" + encodeURIComponent(val('lowlevltemp')) +
+                //  "&lowlevleCO2=" + encodeURIComponent(val('lowlevleCO2')) +
+                 "&lowlevlCO2=" + encodeURIComponent(val('lowlevlCO2')) +
+                 "&lowlevlCO=" + encodeURIComponent(val('lowlevlCO')) +
+                 "&lowlevlTVOC=" + encodeURIComponent(val('lowlevlTVOC')) +
+                 "&lowlevlPM25=" + encodeURIComponent(val('lowlevlPM25')) +
+
+                 "&midlevltemp=" + encodeURIComponent(val('midlevltemp')) +
+                //  "&midlevleCO2=" + encodeURIComponent(val('midlevleCO2')) +
+                 "&midlevlCO2=" + encodeURIComponent(val('midlevlCO2')) +
+                 "&midlevlCO=" + encodeURIComponent(val('midlevlCO')) +
+                 "&midlevlTVOC=" + encodeURIComponent(val('midlevlTVOC')) +
+                 "&midlevlPM25=" + encodeURIComponent(val('midlevlPM25')) +
+
+                 "&highlevltemp=" + encodeURIComponent(val('highlevltemp')) +
+                //  "&highlevleCO2=" + encodeURIComponent(val('highlevleCO2')) +
+                 "&highlevlCO2=" + encodeURIComponent(val('highlevlCO2')) +
+                 "&highlevlCO=" + encodeURIComponent(val('highlevlCO')) +
+                 "&highlevlTVOC=" + encodeURIComponent(val('highlevlTVOC')) +
+                 "&highlevlPM25=" + encodeURIComponent(val('highlevlPM25'));
+           
+  try {
+    await fetch(server, { method: 'GET' }); // или 'POST', если нужно
+   alert("Ok");  //окно с подтверждением
+  } catch (error) {
+    console.error('Ошибка при отправке запроса:', error);
+  }
+}
+
+//-------SetupARROW-------//
+    // function sendTest() {
+    //   fetch('/test') // отправляем GET-запрос на сервер
+    //     .then(response => response.text())
+    //     .then(data => alert(data))
+    //     .catch(error => alert('Ошибка: ' + error));
+    // }
+
+    async function sendTest() {
+  // Создаем элемент сообщения
+  const messageDiv = document.createElement('div');
+  messageDiv.style.position = 'fixed';
+  messageDiv.style.top = '50%';
+  messageDiv.style.left = '50%';
+  messageDiv.style.transform = 'translate(-50%, -50%)';
+  messageDiv.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  messageDiv.style.color = 'white';
+  messageDiv.style.padding = '20px';
+  messageDiv.style.borderRadius = '10px';
+  messageDiv.style.zIndex = '9999';
+  messageDiv.style.textAlign = 'center';
+
+  // Текст сообщения
+  const messageText = document.createElement('p');
+  messageText.innerText = 'Настройте предел стрелочных индикаторов';
+  messageDiv.appendChild(messageText);
+
+  // Кнопка "ОК"
+  const okButton = document.createElement('button');
+  okButton.innerText = 'ОК';
+  okButton.style.marginTop = '10px';
+
+  // Обработка нажатия "ОК"
+  okButton.onclick = () => {
+    document.body.removeChild(messageDiv);
+  };
+
+  messageDiv.appendChild(okButton);
+  document.body.appendChild(messageDiv);
+
+// Обработка нажатия "ОК"
+  okButton.onclick = async () => {
+    // Удаляем сообщение
+    document.body.removeChild(messageDiv);
+    // Отправляем запрос testOFF
+    try {
+      const response = await fetch('/testOFF');
+      // const data = await response.text();
+      // alert(data);
+    } catch (error) {
+      alert('Ошибка: ' + error);
+    }
+  };
+
+  try {
+    // Отправляем запрос
+    const response = await fetch('/testON');
+    // const data = await response.text();
+    // alert(data);
+  } catch (error) {
+    alert('Ошибка: ' + error);
+  }
+}
+    </script>
+  </head>
+
+<!--MENU--> 
+	<body>
+       <input type="checkbox" id="nav-toggle" hidden>
+    <nav id="navmenu" class="nav">
+      <label id="mn" for="nav-toggle" class="nav-toggle" onclick></label>
+      <ul>
+        <li><a href="index.html">Датчики</a></li>
+        <li><a href="wifi_settings.html">Сеть</a></li>
+        <li><a href="setup.html">Настройки</a></li>
+        <li><a href="help.html"class="current"><span class="currnt">Сервис</span></a></li>
+        <!-- <li><a class="link__img" href="#"><span class="ico__text" onclick="restart(this,'ResetESP?');">Перезагрузка</span></a> -->
+      </ul>
+    </nav>
+	</body>
+
+   <body onload = "load();">
+    <center>
+      <h2 class="hd1">Сервис</h2><hr>  
+
+      <h2 class="ttl">INFO</h2>
+      <p><span id="Version"></span></p>   
+      <p><span id="chipModel"></span></p> 
+      <p><span id="chipId"></span></p> 
+      <p><span id="chipCores"></span></p>  
+      <p><span id="cpuFreqMHz"></span></p>
+      <p><span id="sketchSize"></span></p>  
+      <p><span id="freeSketchSpace"></span></p>  
+      <p><span id="flashSize"></span></p>
+      <p><span id="freeHeap"></span></p>
+      <p><span id="coreTemperature"></span></p>
+
+<!-------Sensors------->
+       <hr>
+      <h2 class="ttl">Используемые датчики.</h2><br>
+       <span style="color:red;">Убедитесь, что выбранные датчики подлючены.</span><br>
+      <table id="table_Sensors">
+        <tr>
+          <td><b><span class="opt_cn">BME280</span></b></td>
+          <td><input type="checkbox" id="BME280"></td>
+          <!-- <td><input type="checkbox" id="BME280" onchange="toggleCheckboxes(this)"></td> -->
+          <td><span class="switch-btn"></span></td>
+        </tr>
+        <tr>
+          <td><b><span class="opt_cn">SGP30</span></b></td>
+          <td><input type="checkbox" id="SGP30"></td>
+          <td><span class="switch-btn"></span></td>
+        </tr>
+        <tr>
+          <td><b><span class="opt_cn">PMS5003</span></b></td>
+          <td><input type="checkbox" id="PMS5003"></td>
+          <td><span class="switch-btn"></span></td>
+        </tr>
+        <tr>
+          <td><b><span class="opt_cn">Z-19B</span></b></td>
+          <td><input type="checkbox" id="Z19B"></td>
+          <!-- <td><input type="checkbox" id="Z19B" onchange="toggleCheckboxes(this)"></td> -->
+          <td><span class="switch-btn"></span></td>
+        </tr>
+        <tr>
+          <td><b><span class="opt_cn">MQ-7</span></b></td>
+          <td><input type="checkbox" id="MQ7i"></td>
+          <td><span class="switch-btn"></span></td>
+        </tr>
+          <tr>
+          <td><b><span class="opt_cn">MQ-135</span></b></td>
+          <td><input type="checkbox" id="MQ135i"></td>
+          <td><span class="switch-btn"></span></td>
+        </tr>
+
+      </table> 
+
+     <button class="btn" type="submit" onclick="set_sensors(this);">Сохранить</button>
+      <br>
+
+<!-------ALARM------->
+      <hr>
+      <h2 class="ttl">Параметры тревоги.</h2><br>
+      <span style="color:red;">При достижении <b>"Уровень 1"</b> включается красная подсветка индикаторов (если активирована).</span><br>
+      <span style="color:red;">При достижении <b>"Уровень 3"</b> включается вытяжка (если активирована).</span><br>
+      <table>
+            <tr>
+              <td></td><td>Уровень 1</td><td>Уровень 2</td><td>Уровень 3</td>
+            </tr>
+            <tr id="temp_alarm_row">
+              <td>Температура</td>
+              <td><input id="lowlevltemp" class="inp2"  value="{{lowlevltemp}}" type="number" min="0" max="40" step="0.5"></td>
+              <td><input id="midlevltemp" class="inp2"  value="{{midlevltemp}}" type="number" min="0" max="40" step="0.5"></td>
+              <td><input id="highlevltemp" class="inp2"  value="{{highlevltemp}}" type="number" min="0" max="45" step="0.5"></td>
+              <td>°C</td>
+            </tr>
+               <tr id="co2_alarm_row">
+              <td>CO2</td>
+              <td><input id="lowlevlCO2" class="inp2" value="{{lowlevlCO2}}" type="number" min="0" max="1500" step="0.5"></td>
+              <td><input id="midlevlCO2" class="inp2" value="{{midlevlCO2}}" type="number" min="0" max="2000" step="0.5"></td>
+              <td><input id="highlevlCO2" class="inp2" value="{{highlevlCO2}}" type="number" min="0" max="2500" tep="0.5"></td>
+              <td>ppm</td>
+            </tr>
+            <tr id="co_alarm_row">
+              <td>CO</td>
+              <td><input id="lowlevlCO" class="inp2" value="{{lowlevlCO}}" type="number" min="0" max="500" tep="0.5"></td>
+              <td><input id="midlevlCO" class="inp2" value="{{midlevlCO}}" type="number" min="0" max="1000" tep="0.5"></td>
+              <td><input id="highlevlCO" class="inp2" value="{{highlevlCO}}" type="number" min="0" max="2000" tep="0.5"></td>
+              <td>ppm</td>
+            </tr>
+            <tr id="tvoc_alarm_row">
+              <td>TVOC</td>
+              <td><input id="lowlevlTVOC" class="inp2" value="{{lowlevlTVOC}}" type="number" min="0" step="0.5"></td>
+              <td><input id="midlevlTVOC" class="inp2" value="{{midlevlTVOC}}" type="number" min="0" step="0.5"></td>
+              <td><input id="highlevlTVOC" class="inp2" value="{{highlevlTVOC}}" type="number" min="0" step="0.5"></td>
+              <td>ppd</td>
+            </tr>
+            <tr id="pm25_alarm_row">
+              <td>PPM2.5</td>
+              <td><input id="lowlevlPM25" class="inp2" value="{{lowlevlPM25}}" type="number" min="0" step="0.5"></td>
+              <td><input id="midlevlPM25" class="inp2" value="{{midlevlPM25}}" type="number" min="0" step="0.5"></td>
+              <td><input id="highlevlPM25" class="inp2" value="{{highlevlPM25}}" type="number" min="0" step="0.5"></td>
+              <td>ug/m3</td>
+            </tr>
+          </table>
+
+
+ <button class="btn" type="submit" onclick="set_alarmlevl(this);">Сохранить</button>
+       <br>
+
+
+<hr>
+      <h2 class="ttl">Системные разделы</h2><br>
+      <button class="btn" onclick="sendTest()"><span>Настрйока индикаторов</span></button><br>
+      <button class="btn" onclick="window.location.href='Update.html';"><span>Обновление</span></button><br>
+       <button class="btn" onclick="restart(this,'ResetESP?');"><span class="ico__text">Перезагрузка</span></button><br>
+      <!-- <strong><a class="link__img btn" href="#" onclick="resetConfig(this,'Factory reset?');">Сброс настроек</a></strong><br> -->
+      <strong><a class="link__img btn" href="#" onclick="resetConfig(this,'Factory reset?');">Сброс настроек</a></strong><br>
+      <!-- <div id="loading">Загрузка...</div><br> -->
+      <strong><a class="btn" href="/myconfig.json" target="_blank">Открыть файл настроек</a></strong>
+      <hr>
+		</center>
+
+    <span class="ta_l" style="padding-left: 0px; font-size: 11px; float: right;">Qmicron Corporation &copy; 2019</span>
+  </body>
+</html>

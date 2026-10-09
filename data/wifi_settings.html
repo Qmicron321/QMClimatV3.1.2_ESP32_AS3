@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name = "viewport" content = "width=device-width, initial-scale=1.0">
+    <meta http-equiv = "Content-type" content = "text/html; charset=utf-8">
+    <title>QMClimat</title>
+    <link rel="icon" href="/favicon.png" type="images/png">
+    <link rel = "stylesheet" type = "text/css" href = "style.css">
+    <script type = "text/javascript" src = "/function.js"></script>
+    <script>
+      // Отправка данных на сервер
+      function saveConfig() {
+  const ssid = document.getElementById('ssid').value;
+  const pass = document.getElementById('pass').value;
+  
+  const jsonData = JSON.stringify({ ssid: ssid, pass: pass });
+  
+  fetch('/', {
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:'json=' + encodeURIComponent(jsonData)
+  }).then(response => response.json())
+    .then(data => {
+      alert('Настройки сохранены. Перезагрузка...');
+      setTimeout(() => { location.reload(); }, 2000);
+    })
+    .catch(err => alert('Ошибка при сохранении настроек'));
+}
+
+      // Отобразить пароль
+      function togglePasswordVisibility() {
+  const passInput = document.getElementById('pass');
+  if (document.getElementById('showPass').checked) {
+    passInput.type = 'text';
+  } else {
+    passInput.type = 'password';
+  }
+}
+
+      // Сканирование сетей
+      function scanNetworks() {
+  document.getElementById('networks').innerHTML = 'Сканирование...';
+
+  fetch('/scan_networks')
+    .then(response => response.json())
+    .then(data => {
+      // Создаем таблицу с заголовками
+      let html = `
+        <table style="width:100%; border-collapse: collapse; margin-top:10px;">
+          <thead>
+            <tr>
+              <th style="border: 1px solid #ccc; padding:8px;">SSID</th>
+              <th style="border: 1px solid #ccc; padding:8px;">RSSI</th>
+              <th style="border: 1px solid #ccc; padding:8px;">Канал</th>
+
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      data.networks.forEach((net, index) => {
+        html += `
+          <tr style="cursor:pointer;" onclick="selectNetwork('${net.ssid}')">
+            <td style="border: 1px solid #ccc; padding:8px;">${net.ssid}</td>
+            <td style="border: 1px solid #ccc; padding:8px;">${net.rssi}</td>
+            <td style="border: 1px solid #ccc; padding:8px;">${net.channel}</td>
+
+          </tr>`;
+      });
+
+      html += `
+          </tbody>
+        </table>`;
+      
+      document.getElementById('networks').innerHTML = html;
+    })
+    .catch(error => {
+      document.getElementById('networks').innerHTML = 'Ошибка при сканировании';
+    });
+}
+
+      // Выбор сети из списка
+      function selectNetwork(ssid) {
+   document.getElementById('ssid').value = ssid;
+ }
+
+      // Вызовем сканирование при загрузке страницы
+      window.onload = function() {
+   scanNetworks();
+   };
+    </script>
+  </head>
+	 
+<!--MENU--> 
+	<body>
+       <input type="checkbox" id="nav-toggle" hidden>
+    <nav id="navmenu" class="nav">
+      <label id="mn" for="nav-toggle" class="nav-toggle" onclick></label>
+      <ul>
+        <li><a href="index.html">Датчики</a></li>
+        <li><a href="wifi_settings.html"class="current"><span class="currnt">Сеть</span></a></li>
+        <li><a href="setup.html">Настройки</a></li>
+        <!-- <li><a href="graphic.html">Графики</a></li> -->
+        <!-- <li><a href="mqtt.html">Mqtt</a> -->
+        <li><a href="help.html">Сервис</a></li>
+      </ul>
+    </nav>
+	</body>
+
+  <body>
+    <h2 class="hd1">Настройки WiFi</h2><hr>
+    <center>
+      <span>Подключение к сети internet позволит синхронизировать время и получать прогноз погоды.</span>
+      <hr>
+
+      <form onsubmit="event.preventDefault(); saveConfig();">
+        <label for="ssid">SSID:</label>
+        <input id="ssid" class="inpW" maxlength="40" name="ssid" autocomplete="off" required><br>
+
+        <label for="pass">Пароль:</label>
+        <input id="pass" class="inpW" type="password" name="pass" maxlength="40" autocomplete="off" required><br>
+
+        
+        <label style="margin-top:10px;">
+        <input type="checkbox" id="showPass" onchange="togglePasswordVisibility()" />Отобразить пароль</label>
+
+        <div class="indiv">
+          <button id="save" class="btn btn-primary" type="submit" name="button">Сохранить</button>
+        </div>
+      </form><br>
+
+      <input id="sm" type="button" value="Обновить список сетей" class="btn btn-primary" onclick="scanNetworks()"/><br>
+      <div id="networks" style="margin-top:10px;"></div>
+    </center>
+  </body>
+</html>
+
+      
